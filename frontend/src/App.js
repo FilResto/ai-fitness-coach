@@ -1,5 +1,231 @@
-import React, { useState } from 'react';
-import { User, Target, Camera, FileText, ChevronRight, ChevronLeft, Upload, X, Sparkles, CheckCircle, Clock, Calendar, Dumbbell, Download, Heart } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, AlertTriangle, Target, Camera, FileText, ChevronRight, ChevronLeft, Upload, X, Sparkles, CheckCircle, Clock, Calendar, Dumbbell, Download, Heart } from 'lucide-react';
+
+// Componente per Google AdSense
+const GoogleAdBanner = ({
+  adSlot,
+  adFormat = "auto",
+  style = {},
+  className = "",
+  adLayout = null,
+  adLayoutKey = null
+}) => {
+  const adRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Aspetta un momento per essere sicuri che tutto sia caricato
+    const timer = setTimeout(() => {
+      try {
+        console.log('🔍 Checking AdSense availability...');
+        
+        // Verifica che adsbygoogle sia disponibile
+        if (typeof window !== 'undefined' && window.adsbygoogle) {
+          console.log('✅ AdSense script found');
+          
+          // Verifica che l'elemento ins non sia già stato processato
+          if (adRef.current) {
+            const insElement = adRef.current;
+            
+            // Controlla se l'ad è già stato caricato
+            if (insElement.getAttribute('data-adsbygoogle-status')) {
+              console.log('⚠️ Ad already loaded, skipping');
+              return;
+            }
+
+            console.log('🚀 Pushing ad to AdSense queue...');
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            setIsLoaded(true);
+            console.log('✅ AdSense ad pushed successfully');
+          }
+        } else {
+          const errorMsg = 'AdSense script not loaded';
+          console.warn('⚠️', errorMsg);
+          setError(errorMsg);
+        }
+      } catch (error) {
+        console.error('❌ AdSense error:', error);
+        setError(error.message);
+      }
+    }, 500); // Delay di 500ms
+
+    return () => clearTimeout(timer);
+  }, [adSlot]);
+   // Debug info in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔧 AdSense Debug Info:', {
+        adSlot,
+        scriptLoaded: !!window.adsbygoogle,
+        isLocalhost: window.location.hostname === 'localhost',
+        currentURL: window.location.href
+      });
+    }
+  }, [adSlot]);
+
+  return (
+    <div className={`adsense-container ${className}`} style={style}>
+      <div className="text-xs text-gray-400 mb-1 text-center">Ads</div>
+      
+      {/* Test mode placeholder per localhost */}
+      {window.location.hostname === 'localhost' && (
+        <div className="bg-gray-200 border-2 border-dashed border-gray-400 rounded-lg p-8 text-center">
+          <div className="text-gray-600">
+            <div className="text-lg mb-2">📺 AdSense Test Mode</div>
+            <div className="text-sm">
+              Slot: {adSlot}<br/>
+              Format: {adFormat}<br/>
+              {error && <span className="text-red-500">Error: {error}</span>}
+              {isLoaded && <span className="text-green-500">✅ Script loaded</span>}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <ins 
+        ref={adRef}
+        className="adsbygoogle"
+        style={{ 
+          display: 'block',
+          textAlign: 'center',
+          minHeight: window.location.hostname === 'localhost' ? '0px' : '90px',
+          ...style 
+        }}
+        data-ad-client="ca-pub-2663565811118495"
+        data-ad-slot={adSlot}
+        data-ad-format={adFormat}
+        data-adtest="on"
+        data-full-width-responsive="true"
+        {...(adLayout && { 'data-ad-layout': adLayout })}
+        {...(adLayoutKey && { 'data-ad-layout-key': adLayoutKey })}
+      />
+    </div>
+  );
+};
+
+// 3. COMPONENTE REAL AD BANNER MIGLIORATO
+const RealAdBanner = ({ 
+  type = 'banner', 
+  position = 'default',
+  className = "" 
+}) => {
+  console.log(`🎯 Rendering RealAdBanner: type=${type}, position=${position}`);
+
+  // SLOT IDS - Devi creare questi slot nel tuo account AdSense
+  const getAdSlot = (type, position) => {
+    const slots = {
+      // Usa sempre lo stesso slot per ora, poi ne creerai altri
+      'banner': "7386807442",
+      'rectangle': "7386807442", // Stesso slot per ora
+      'gym_photos': "7386807442",
+      'workout_success': "7386807442",
+      'between_workouts': "7386807442"
+    };
+    
+    return slots[type] || slots[position] || "7386807442";
+  };
+
+  // STILI DIVERSI PER TIPO
+  const getAdStyle = () => {
+    switch (type) {
+      case 'rectangle':
+        return {
+          minHeight: '250px',
+          maxWidth: '300px',
+          margin: '0 auto',
+          width: '100%'
+        };
+      case 'banner':
+      default:
+        return {
+          minHeight: '90px',
+          width: '100%'
+        };
+    }
+  };
+
+  const adSlot = getAdSlot(type, position);
+
+  return (
+    <div className={`ad-wrapper my-4 ${className}`}>
+      <GoogleAdBanner 
+        adSlot={adSlot}
+        adFormat="auto"
+        style={getAdStyle()}
+        className="w-full"
+      />
+    </div>
+  );
+};
+
+// 4. COMPONENT PER DEBUG ADSENSE
+const AdSenseDebugger = () => {
+  const [debugInfo, setDebugInfo] = React.useState({});
+
+  React.useEffect(() => {
+    const checkAdSense = () => {
+      const info = {
+        scriptLoaded: !!window.adsbygoogle,
+        adsbygoogleArray: window.adsbygoogle ? window.adsbygoogle.length : 0,
+        userAgent: navigator.userAgent,
+        currentURL: window.location.href,
+        isLocalhost: window.location.hostname === 'localhost',
+        adBlockerPossible: !window.adsbygoogle && document.readyState === 'complete'
+      };
+      setDebugInfo(info);
+    };
+
+    // Check subito e dopo 2 secondi
+    checkAdSense();
+    setTimeout(checkAdSense, 2000);
+  }, []);
+
+  return (
+    <div className="bg-gray-800 text-white p-4 rounded-lg text-xs font-mono">
+      <h3 className="font-bold mb-2">🔍 AdSense Debug Info:</h3>
+      <ul className="space-y-1">
+        <li>Script Loaded: {debugInfo.scriptLoaded ? '✅' : '❌'}</li>
+        <li>AdSense Queue: {debugInfo.adsbygoogleArray || 0} items</li>
+        <li>Is Localhost: {debugInfo.isLocalhost ? '⚠️ YES (ads may not show)' : '✅ NO'}</li>
+        <li>Possible AdBlocker: {debugInfo.adBlockerPossible ? '⚠️ YES' : '✅ NO'}</li>
+        <li>URL: {debugInfo.currentURL}</li>
+      </ul>
+    </div>
+  );
+};
+
+// 5. HOOK PER GESTIRE ADSENSE
+const useAdSense = () => {
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    const checkAdSense = () => {
+      if (window.adsbygoogle) {
+        setIsLoaded(true);
+        console.log('✅ AdSense is ready');
+      } else {
+        console.log('⏳ Waiting for AdSense...');
+        setTimeout(checkAdSense, 500);
+      }
+    };
+
+    // Aspetta che il DOM sia pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAdSense);
+    } else {
+      checkAdSense();
+    }
+
+    return () => {
+      document.removeEventListener('DOMContentLoaded', checkAdSense);
+    };
+  }, []);
+
+  return { isLoaded, error };
+};
+
 
 const steps = [
   { label: 'Personal Info', icon: User },
@@ -52,33 +278,109 @@ const muscleFocus = [
   { value: 'specific_muscles', label: 'Specific Muscle Groups' }
 ];
 
+// AGGIUNTO: Funzioni per localStorage e limite giornaliero
+const saveToLocalStorage = (step, data) => {
+  try {
+    localStorage.setItem(`fitnessApp_step${step}`, JSON.stringify(data));
+  } catch (error) {
+    console.warn('Impossibile salvare in localStorage:', error);
+  }
+};
+
+const loadFromLocalStorage = (step) => {
+  try {
+    const saved = localStorage.getItem(`fitnessApp_step${step}`);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.warn('Impossibile caricare da localStorage:', error);
+    return null;
+  }
+};
+
+const checkDailyLimit = () => {
+  const today = new Date().toDateString();
+  const lastGeneration = localStorage.getItem('lastGenerationDate');
+  const generationCount = parseInt(localStorage.getItem('generationCount') || '0');
+
+  if (lastGeneration !== today) {
+    // Nuovo giorno, reset counter
+    localStorage.setItem('lastGenerationDate', today);
+    localStorage.setItem('generationCount', '0');
+    return { canGenerate: true, remaining: 1 };
+  }
+
+  const remaining = Math.max(0, 1 - generationCount);
+  return { canGenerate: remaining > 0, remaining };
+};
+
+const incrementDailyCount = () => {
+  const currentCount = parseInt(localStorage.getItem('generationCount') || '0');
+  localStorage.setItem('generationCount', (currentCount + 1).toString());
+};
+
+
+// AGGIUNTO: Componente limite giornaliero
+const DailyLimitNotice = ({ remaining, onUpgrade }) => (
+  <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-6 mb-6">
+    <div className="flex items-center gap-3 mb-4">
+      <AlertTriangle className="text-orange-400" size={24} />
+      <h3 className="text-xl font-bold text-white">Piano giornaliero utilizzato</h3>
+    </div>
+    <p className="text-white/80 mb-4">
+      Hai già generato il tuo piano gratuito di oggi. Torna domani per un nuovo piano gratuito!
+    </p>
+    <div className="flex flex-col sm:flex-row gap-3">
+      <button
+        onClick={onUpgrade}
+        className="bg-gradient-to-r from-gold-500 to-yellow-500 hover:from-gold-600 hover:to-yellow-600 text-black font-bold py-3 px-6 rounded-lg transition-all"
+      >
+        🚀 Upgrade a Premium - Piani Illimitati
+      </button>
+      <button className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+        📅 Ricordami domani
+      </button>
+    </div>
+  </div>
+);
 function AIFitnessCoach() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [dailyLimit, setDailyLimit] = useState(checkDailyLimit());
+  const { isLoaded } = useAdSense();
 
   // Personal Info State
-  const [personalInfo, setPersonalInfo] = useState({
-    fullName: '',
-    age: '',
-    gender: '',
-    height: '',
-    weight: '',
-    fitnessExperience: ''
+  const [personalInfo, setPersonalInfo] = useState(() => {
+    const saved = loadFromLocalStorage(0);
+    return saved || {
+      fullName: '',
+      age: '',
+      gender: '',
+      height: '',
+      weight: '',
+      fitnessExperience: ''
+    };
   });
 
-  // Goals State
-  const [goals, setGoals] = useState({
-    primaryGoal: '',
-    workoutFrequency: '',
-    sessionDuration: '',
-    muscleGroupFocus: '',
-    healthIssues: ''
+  const [goals, setGoals] = useState(() => {
+    const saved = loadFromLocalStorage(1);
+    return saved || {
+      primaryGoal: '',
+      workoutFrequency: '',
+      sessionDuration: '',
+      muscleGroupFocus: '',
+      healthIssues: ''
+    };
   });
 
-  // Gym Photos State
-  const [gymPhotos, setGymPhotos] = useState({
-    uploadedFiles: [],
-    isDragOver: false
+  const [gymPhotos, setGymPhotos] = useState(() => {
+    // Non salviamo le foto in localStorage per motivi di spazio
+    return {
+      uploadedFiles: [],
+      isDragOver: false
+    };
   });
+  useEffect(() => {
+    setDailyLimit(checkDailyLimit());
+  }, []);
 
   // AI Workout Plan State
   const [workoutPlan, setWorkoutPlan] = useState(null);
@@ -89,30 +391,22 @@ function AIFitnessCoach() {
 
 
   const handlePersonalInfoChange = (field, value) => {
-    setPersonalInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    const newData = { ...personalInfo, [field]: value };
+    setPersonalInfo(newData);
+    saveToLocalStorage(0, newData);
 
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
   const handleGoalsChange = (field, value) => {
-    setGoals(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    const newData = { ...goals, [field]: value };
+    setGoals(newData);
+    saveToLocalStorage(1, newData);
 
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -153,194 +447,67 @@ function AIFitnessCoach() {
 
   // AI Service functions
   // SOSTITUISCI questa funzione nel frontend:
-// SOSTITUISCI questa funzione nel frontend:
-const generateWorkoutPlan = async (userData, gymPhotos) => {
-  try {
-    console.log('🌐 Calling backend API...');
-    
-    // Convert files to base64 for sending to backend
-    const photoData = [];
-    for (const file of gymPhotos) {
-      try {
-        const base64 = await fileToBase64(file);
-        photoData.push({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          data: base64.split(',')[1] // Remove data:image/jpeg;base64, prefix
-        });
-        console.log(`📸 Converted photo: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`);
-      } catch (error) {
-        console.warn('Failed to process photo:', file.name, error);
-      }
-    }
-    
-    console.log(`📤 Sending ${photoData.length} photos to backend...`);
-    
-    const response = await fetch('http://localhost:5000/api/workout/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        personalInfo: userData,
-        goals: userData,
-        gymPhotos: photoData
-      })
-    });
+  // SOSTITUISCI questa funzione nel frontend:
+  const generateWorkoutPlan = async (userData, gymPhotos) => {
+    try {
+      console.log('🌐 Calling backend API...');
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to generate workout plan');
-    }
-
-    const result = await response.json();
-    console.log('✅ Received plan:', result.data);
-    return result.data;
-    
-  } catch (error) {
-    console.error('❌ Frontend API Error:', error);
-    throw error;
-  }
-};
-
-// Helper function to convert file to base64
-const fileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-};
-
-  const generateDemoPlan = (userData) => {
-    return {
-      title: `${userData.primaryGoal?.replace('_', ' ').toUpperCase() || 'FITNESS'} Plan - ${userData.fitnessExperience?.toUpperCase() || 'DEMO'}`,
-      description: `Demo workout plan (Connect OpenAI API for personalized AI-generated plans)`,
-      frequency: userData.workoutFrequency || '3-4 times per week',
-      sessionDuration: `${userData.sessionDuration || '60'} minutes`,
-      isAiGenerated: false,
-      workouts: [
-        {
-          day: "Day 1 - Upper Body Foundation",
-          focus: "Chest, Shoulders, Triceps",
-          warmup: "5-10 minutes of arm circles, light cardio, and dynamic stretching",
-          exercises: [
-            {
-              name: "Push-ups",
-              sets: "3",
-              reps: "10-15",
-              rest: "60 seconds",
-              muscles: "Chest, Shoulders, Triceps",
-              intensity: "medium",
-              notes: "Keep core tight, modify on knees if needed"
-            },
-            {
-              name: "Shoulder Taps",
-              sets: "3",
-              reps: "10 each side",
-              rest: "45 seconds",
-              muscles: "Shoulders, Core",
-              intensity: "low",
-              notes: "Hold plank position, tap opposite shoulder"
-            }
-          ],
-          cooldown: "10 minutes of upper body stretching"
-        },
-        {
-          day: "Day 2 - Lower Body Power",
-          focus: "Quads, Glutes, Hamstrings",
-          warmup: "10 minutes of leg swings, bodyweight squats, and activation exercises",
-          exercises: [
-            {
-              name: "Bodyweight Squats",
-              sets: "4",
-              reps: "15-20",
-              rest: "90 seconds",
-              muscles: "Quads, Glutes, Core",
-              intensity: "medium",
-              notes: "Keep chest up, weight in heels"
-            },
-            {
-              name: "Lunges",
-              sets: "3",
-              reps: "10 each leg",
-              rest: "60 seconds",
-              muscles: "Quads, Glutes, Hamstrings",
-              intensity: "medium",
-              notes: "Step forward, lower back knee toward ground"
-            }
-          ],
-          cooldown: "15 minutes of lower body stretching and hip mobility"
+      // Convert files to base64 for sending to backend
+      const photoData = [];
+      for (const file of gymPhotos) {
+        try {
+          const base64 = await fileToBase64(file);
+          photoData.push({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            data: base64.split(',')[1] // Remove data:image/jpeg;base64, prefix
+          });
+          console.log(`📸 Converted photo: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        } catch (error) {
+          console.warn('Failed to process photo:', file.name, error);
         }
-      ],
-      progression: "Week 1-2: Master the movements. Week 3-4: Increase reps by 2-3. Week 5-6: Add additional sets or progress to harder variations.",
-      importantNotes: "This is a demo plan. Connect your OpenAI API key for fully personalized AI-generated workouts based on your specific needs, equipment, and goals."
-    };
-  };
-
-  const analyzeGymPhotos = (photos) => {
-    if (!photos || photos.length === 0) {
-      return ['bodyweight', 'stretching', 'functional exercises'];
-    }
-    return ['dumbbells', 'barbells', 'bench', 'squat rack', 'cables', 'treadmill'];
-  };
-
-  const buildWorkoutPrompt = (userData, equipment) => {
-    const age = parseInt(userData.age);
-    const experience = userData.fitnessExperience;
-    const goal = userData.primaryGoal;
-    const frequency = userData.workoutFrequency;
-    const sessionTime = userData.sessionDuration;
-    const focusGroups = userData.muscleGroupFocus;
-    const healthIssues = userData.healthIssues;
-
-    return `You are an expert certified personal trainer. Create a detailed personalized workout plan.
-
-      PERSONAL DATA:
-      - Age: ${age} years
-      - Experience: ${experience}
-      - Primary Goal: ${goal}
-      - Frequency: ${frequency}
-      - Session Duration: ${sessionTime} minutes
-      - Muscle Focus: ${focusGroups}
-      - Health Issues: ${healthIssues || 'none'}
-
-      AVAILABLE EQUIPMENT:
-      ${equipment.join(', ')}
-
-      RESPONSE FORMAT (JSON):
-      {
-        "title": "Plan [Goal] - [Level]",
-        "description": "Brief plan description",
-        "frequency": "${frequency}",
-        "sessionDuration": "${sessionTime} minutes",
-        "workouts": [
-          {
-            "day": "Day 1 - Session Name",
-            "focus": "Main muscle groups",
-            "warmup": "5-10 minutes of...",
-            "exercises": [
-              {
-                "name": "Exercise name",
-                "sets": "4",
-                "reps": "8-10",
-                "rest": "90-120 seconds",
-                "muscles": "Target muscles",
-                "intensity": "high/medium/low",
-                "notes": "Technical notes"
-              }
-            ],
-            "cooldown": "Final stretching"
-          }
-        ],
-        "progression": "How to progress over weeks",
-        "importantNotes": "Safety and technique tips"
       }
 
-      Respond ONLY with valid JSON, no other text.`;
+      console.log(`📤 Sending ${photoData.length} photos to backend...`);
+
+      const response = await fetch('http://localhost:5000/api/workout/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          personalInfo: userData,
+          goals: userData,
+          gymPhotos: photoData
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate workout plan');
+      }
+
+      const result = await response.json();
+      console.log('✅ Received plan:', result.data);
+      return result.data;
+
+    } catch (error) {
+      console.error('❌ Frontend API Error:', error);
+      throw error;
+    }
   };
+
+  // Helper function to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
+
 
   const validatePersonalInfo = () => {
     const newErrors = {};
@@ -410,22 +577,29 @@ const fileToBase64 = (file) => {
     }
   };
 
+  // MODIFICATO: Controlla limite prima di generare
   const handleGeneratePlan = async () => {
+    const limitCheck = checkDailyLimit();
+
+    if (!limitCheck.canGenerate) {
+      setDailyLimit(limitCheck);
+      return;
+    }
+
     setIsGenerating(true);
     setGenerationError(null);
 
     try {
-      const userData = {
-        ...personalInfo,
-        ...goals
-      };
-
+      const userData = { ...personalInfo, ...goals };
       console.log('Generating workout plan with data:', userData);
-      console.log('Gym photos:', gymPhotos.uploadedFiles);
 
       const plan = await generateWorkoutPlan(userData, gymPhotos.uploadedFiles);
       setWorkoutPlan(plan);
       setCurrentStep(3);
+
+      // AGGIUNTO: Incrementa contatore giornaliero
+      incrementDailyCount();
+      setDailyLimit(checkDailyLimit());
 
     } catch (error) {
       console.error('Error generating plan:', error);
@@ -433,6 +607,12 @@ const fileToBase64 = (file) => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // AGGIUNTO: Funzione per upgrade premium
+  const handleUpgradeClick = () => {
+    // Qui integrerai Stripe/PayPal in futuro
+    alert('Premium in arrivo! Accesso illimitato per soli €4.99/mese');
   };
 
   const handlePrevious = () => {
@@ -748,6 +928,7 @@ const fileToBase64 = (file) => {
 
   const renderGymPhotos = () => (
     <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl shadow-2xl p-8 text-white">
+      {/* Header esistente */}
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
           <div className="bg-yellow-500 rounded-full p-3">
@@ -759,77 +940,101 @@ const fileToBase64 = (file) => {
       </div>
 
       <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold mb-4 text-center">Show us your gym equipment</h2>
-        <p className="text-center text-white/80 mb-8">
-          Upload photos of your gym equipment so our AI can create a personalized workout plan based on what's available to you.
-        </p>
+        {/* 🚨 CONTROLLO LIMITE GIORNALIERO */}
+        { /**mettere il ! davanti a dailylimit */}
+        {!dailyLimit.canGenerate ? (
+          <>
+          <RealAdBanner type="banner" position="gym_photos" />
+          <DailyLimitNotice
+            remaining={dailyLimit.remaining}
+            onUpgrade={handleUpgradeClick}
+          />
+          </>
+          
+        ) : (
+          <>
+            <RealAdBanner type="banner" position="gym_photos" />
+            <h2 className="text-2xl font-bold mb-4 text-center">Show us your gym equipment</h2>
+            <p className="text-center text-white/80 mb-2">
+              Upload photos of your gym equipment so our AI can create a personalized workout plan based on what's available to you.
+            </p>
 
-        <div
-          className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${gymPhotos.isDragOver
-            ? 'border-yellow-400 bg-yellow-400/10'
-            : 'border-white/40 bg-white/5'
-            }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center">
-            <div className="bg-white/20 rounded-full p-6 mb-4">
-              <Camera size={48} className="text-white" />
-            </div>
+            {/* ⚡ CONTATORE PIANI RIMASTI */}
+            <p className="text-center text-sm text-yellow-300 mb-8">
+              ⚡ Piano gratuito giornaliero: {dailyLimit.remaining} rimasto oggi
+            </p>
 
-            <h3 className="text-xl font-semibold mb-2">Drop your gym photos here</h3>
-            <p className="text-white/70 mb-4">or click to browse files</p>
-
-            <label className="cursor-pointer bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg transition-all duration-200 border border-white/30">
-              <span className="font-medium">Browse Files</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleFileUpload(e.target.files)}
-              />
-            </label>
-
-            <div className="flex items-center gap-2 mt-4 text-sm text-white/60">
-              <Upload size={16} />
-              <span>Support for JPG, PNG, WEBP files</span>
-            </div>
-          </div>
-        </div>
-
-        {gymPhotos.uploadedFiles.length > 0 && (
-          <div className="mt-6">
-            <h4 className="font-semibold mb-4">Uploaded Photos ({gymPhotos.uploadedFiles.length})</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {gymPhotos.uploadedFiles.map((file, index) => (
-                <div key={index} className="relative group">
-                  <div className="bg-white/10 rounded-lg p-3 border border-white/20">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-500 rounded p-2">
-                        <Camera size={20} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
-                        <p className="text-xs text-white/60">
-                          {(file.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-all duration-200"
-                      >
-                        <X size={14} className="text-white" />
-                      </button>
-                    </div>
-                  </div>
+            {/* DRAG & DROP AREA (codice esistente) */}
+            <div
+              className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${gymPhotos.isDragOver
+                ? 'border-yellow-400 bg-yellow-400/10'
+                : 'border-white/40 bg-white/5'
+                }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className="flex flex-col items-center">
+                <div className="bg-white/20 rounded-full p-6 mb-4">
+                  <Camera size={48} className="text-white" />
                 </div>
-              ))}
+
+                <h3 className="text-xl font-semibold mb-2">Drop your gym photos here</h3>
+                <p className="text-white/70 mb-4">or click to browse files</p>
+
+                <label className="cursor-pointer bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg transition-all duration-200 border border-white/30">
+                  <span className="font-medium">Browse Files</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e.target.files)}
+                  />
+                </label>
+
+                <div className="flex items-center gap-2 mt-4 text-sm text-white/60">
+                  <Upload size={16} />
+                  <span>Support for JPG, PNG, WEBP files</span>
+                </div>
+              </div>
             </div>
-          </div>
+
+            {/* LISTA FILE CARICATI (codice esistente) */}
+            {gymPhotos.uploadedFiles.length > 0 && (
+              <div className="mt-6">
+                <h4 className="font-semibold mb-4">Uploaded Photos ({gymPhotos.uploadedFiles.length})</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {gymPhotos.uploadedFiles.map((file, index) => (
+                    <div key={index} className="relative group">
+                      <div className="bg-white/10 rounded-lg p-3 border border-white/20">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-blue-500 rounded p-2">
+                            <Camera size={20} className="text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{file.name}</p>
+                            <p className="text-xs text-white/60">
+                              {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-all duration-200"
+                          >
+                            <X size={14} className="text-white" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
+        {/* BOTTONI NAVIGAZIONE */}
         <div className="flex justify-between mt-8">
           <button
             onClick={handlePrevious}
@@ -841,10 +1046,12 @@ const fileToBase64 = (file) => {
 
           <button
             onClick={handleNext}
-            disabled={isGenerating}
+            disabled={isGenerating || !dailyLimit.canGenerate}
             className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            {isGenerating ? (
+            {!dailyLimit.canGenerate ? (
+              'Limite raggiunto'
+            ) : isGenerating ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 Generating...
@@ -858,6 +1065,7 @@ const fileToBase64 = (file) => {
           </button>
         </div>
 
+        {/* ERRORE GENERAZIONE */}
         {generationError && (
           <div className="mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
             <p className="text-red-300 text-sm">{generationError}</p>
@@ -869,9 +1077,12 @@ const fileToBase64 = (file) => {
     </div>
   );
 
+  // ===== RENDER WORKOUT PLAN (Step 4 - Risultato finale) =====
   const renderWorkoutPlan = () => (
     <div className="bg-gradient-to-br from-purple-600 to-blue-600 min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-6">
+
+        {/* HEADER SUCCESSO */}
         <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-xl shadow-2xl p-8 text-white text-center">
           <div className="flex justify-center mb-4">
             <CheckCircle size={64} className="text-white" />
@@ -885,6 +1096,11 @@ const fileToBase64 = (file) => {
           </p>
         </div>
 
+        {/* 📺 PUBBLICITÀ DOPO IL SUCCESSO */}
+        {process.env.NODE_ENV === 'development' && <AdSenseDebugger />}
+        <RealAdBanner type="rectangle" position="workout_success" />
+
+        {/* INFO PIANO */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 text-white">
           <h2 className="text-2xl font-bold mb-4">{workoutPlan?.title}</h2>
           <p className="text-white/80 mb-6">{workoutPlan?.description}</p>
@@ -914,16 +1130,19 @@ const fileToBase64 = (file) => {
           </div>
         </div>
 
+        {/* WORKOUTS INDIVIDUALI */}
         {workoutPlan?.workouts?.map((workout, index) => (
           <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 text-white">
             <h3 className="text-xl font-bold mb-2">{workout.day}</h3>
             <p className="text-blue-300 font-medium mb-4">Focus: {workout.focus}</p>
 
+            {/* WARM-UP */}
             <div className="mb-4">
               <h4 className="font-semibold mb-2">🔥 Warm-up</h4>
               <p className="text-white/80 text-sm bg-yellow-500/20 p-3 rounded-lg">{workout.warmup}</p>
             </div>
 
+            {/* ESERCIZI */}
             <div className="mb-4">
               <h4 className="font-semibold mb-3">💪 Exercises</h4>
               <div className="space-y-3">
@@ -968,13 +1187,19 @@ const fileToBase64 = (file) => {
               </div>
             </div>
 
+            {/* COOL-DOWN */}
             <div>
               <h4 className="font-semibold mb-2">🧘 Cool-down</h4>
               <p className="text-white/80 text-sm bg-blue-500/20 p-3 rounded-lg">{workout.cooldown}</p>
             </div>
           </div>
         ))}
+        {/* GOOGLE ADS TRA I WORKOUTS (opzionale) */}
+        {workoutPlan?.workouts?.length > 1 && (
+          <RealAdBanner type="banner" position="between_workouts" />
+        )}
 
+        {/* PROGRESSIONE E NOTE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 text-white">
             <h3 className="text-xl font-bold mb-4">📈 Progression</h3>
@@ -987,6 +1212,7 @@ const fileToBase64 = (file) => {
           </div>
         </div>
 
+        {/* BOTTONI FINALI */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={downloadPlanAsPDF}
@@ -995,8 +1221,28 @@ const fileToBase64 = (file) => {
             <Download size={20} />
             Download Plan
           </button>
+
+          {/* 💎 PULSANTE PREMIUM */}
           <button
-            onClick={() => setCurrentStep(0)}
+            onClick={handleUpgradeClick}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+          >
+            🚀 Upgrade Premium
+          </button>
+
+          <button
+            onClick={() => {
+              setCurrentStep(0);
+              // Clear saved data per nuovo piano
+              localStorage.removeItem('fitnessApp_step0');
+              localStorage.removeItem('fitnessApp_step1');
+              setPersonalInfo({
+                fullName: '', age: '', gender: '', height: '', weight: '', fitnessExperience: ''
+              });
+              setGoals({
+                primaryGoal: '', workoutFrequency: '', sessionDuration: '', muscleGroupFocus: '', healthIssues: ''
+              });
+            }}
             className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200"
           >
             Create New Plan
@@ -1102,6 +1348,9 @@ const fileToBase64 = (file) => {
   );
 }
 
+
+
 export default function App() {
   return <AIFitnessCoach />;
 }
+
