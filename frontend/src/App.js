@@ -573,7 +573,8 @@ function AIFitnessCoach() {
         setCurrentStep(2);
       }
     } else if (currentStep === 2) {
-      handleGeneratePlan();
+      alert('Incoming with AI!');
+      //handleGeneratePlan();
     }
   };
 
