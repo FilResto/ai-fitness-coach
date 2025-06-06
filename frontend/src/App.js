@@ -612,7 +612,7 @@ function AIFitnessCoach() {
   // AGGIUNTO: Funzione per upgrade premium
   const handleUpgradeClick = () => {
     // Qui integrerai Stripe/PayPal in futuro
-    alert('Premium in arrivo! Accesso illimitato per soli €4.99/mese');
+    alert('Premium incoming!');
   };
 
   const handlePrevious = () => {
