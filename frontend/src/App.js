@@ -1050,7 +1050,7 @@ function AIFitnessCoach() {
             className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {!dailyLimit.canGenerate ? (
-              'Limite raggiunto'
+              'Limit reached today, upgrade to premium for more plans!'
             ) : isGenerating ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
