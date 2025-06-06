@@ -334,10 +334,10 @@ const DailyLimitNotice = ({ remaining, onUpgrade }) => (
         onClick={onUpgrade}
         className="bg-gradient-to-r from-gold-500 to-yellow-500 hover:from-gold-600 hover:to-yellow-600 text-black font-bold py-3 px-6 rounded-lg transition-all"
       >
-        🚀 Upgrade a Premium - Piani Illimitati
+        🚀 Upgrade to Premium - Unlimited Plans
       </button>
       <button className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-lg transition-all">
-        📅 Ricordami domani
+        📅 Remember tomorrow
       </button>
     </div>
   </div>
@@ -471,7 +471,7 @@ function AIFitnessCoach() {
 
       console.log(`📤 Sending ${photoData.length} photos to backend...`);
 
-      const response = await fetch('http://localhost:5000/api/workout/generate', {
+      const response = await fetch('/api/workout/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
