@@ -1,6 +1,8 @@
 // api/workout/generate.js - Vercel Serverless Function
 // COPIA COMPLETA di tutto il backend
 
+import fetch from 'node-fetch';
+
 // Rate limiting in-memory store per Vercel
 const rateLimitStore = new Map();
 
