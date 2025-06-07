@@ -44,15 +44,7 @@ const GoalsForm = ({
 
   return (
     <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl shadow-2xl p-8 text-white">
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <div className="bg-yellow-500 rounded-full p-3">
-            <span className="text-2xl">🏆</span>
-          </div>
-        </div>
-        <h1 className="text-3xl font-bold mb-2">AI Fitness Coach</h1>
-        <p className="text-white/80">Get your personalized workout plan powered by AI</p>
-      </div>
+      
 
       <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold mb-8 text-center">What are your fitness goals?</h2>

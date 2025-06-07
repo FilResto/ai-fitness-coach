@@ -259,11 +259,19 @@ function AIFitnessCoach() {
 
         {/* Show horizontal step indicator for step 2 */}
         {currentStep === 2 && (
+
+          <>
+          <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-2">AI Fitness Coach</h1>
+              <p className="text-white/80 text-lg">Your personalized fitness journey starts here</p>
+            </div>
           <StepIndicator 
             steps={steps} 
             currentStep={currentStep} 
             showHorizontal={true}
           />
+          </>
+          
         )}
 
         {/* Render the current step */}

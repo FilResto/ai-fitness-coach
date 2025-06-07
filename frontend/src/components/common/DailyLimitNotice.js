@@ -5,10 +5,10 @@ const DailyLimitNotice = ({ remaining, onUpgrade }) => (
   <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-6 mb-6">
     <div className="flex items-center gap-3 mb-4">
       <AlertTriangle className="text-orange-400" size={24} />
-      <h3 className="text-xl font-bold text-white">Piano giornaliero utilizzato</h3>
+      <h3 className="text-xl font-bold text-white">Daily credit reached</h3>
     </div>
     <p className="text-white/80 mb-4">
-      Hai già generato il tuo piano gratuito di oggi. Torna domani per un nuovo piano gratuito!
+      You have already generated your free plan for today. Come back tomorrow for a new free plan!
     </p>
     <div className="flex flex-col sm:flex-row gap-3">
       <button
