@@ -95,7 +95,6 @@ const GoogleAdBanner = ({
         data-ad-client="ca-pub-2663565811118495"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
-        data-adtest="on"
         data-full-width-responsive="true"
         {...(adLayout && { 'data-ad-layout': adLayout })}
         {...(adLayoutKey && { 'data-ad-layout-key': adLayoutKey })}
